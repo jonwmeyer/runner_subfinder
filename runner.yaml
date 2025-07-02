@@ -1,5 +1,5 @@
 runner:
-  name: subfinder
+  name: Subfinder
   description: Passive source subdomain discovery tool that finds and returns valid subdomains for websites.
   version: 0.0.1
 
