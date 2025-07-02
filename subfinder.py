@@ -10,22 +10,23 @@ def main():
     """Entry point: Validate input, check dependencies, run scan, and handle results."""
     if len(sys.argv) < 2:
         print("[!] Error: Please provide a domain to scan")
-        print("Usage: python3 chaos.py example.com")
+        print("Usage: python3 subfinder.py example.com")
+        
         sys.exit(1)
     
     domain = sys.argv[1]
 
     #os.environ["PDCP_API_KEY"] = "" # TODO: remove this after testing       
 
-    if not check_chaos_installed():
-        print("[!] Error: chaos is not installed or not in PATH")
-        print("Please install chaos first: https://chaos.projectdiscovery.io/chaos/get-started/")
+    if not check_subfinder_installed():
+        print("[!] Error: subfinder is not installed or not in PATH")
+        print("Please install subfinder first: https://subfinder.projectdiscovery.io/subfinder/get-started/")
         sys.exit(1)
     
     activate_venv()
     
-    print(f"[*] Starting chaos domain scan for: {domain}")
-    exit_code = run_chaos_scan_and_save(domain)
+    print(f"[*] Starting subfinder domain scan for: {domain}")
+    exit_code = run_subfinder_scan_and_save(domain)
     
     if exit_code == 0:
         print("[+] Scan completed successfully")
@@ -34,11 +35,11 @@ def main():
     
     sys.exit(exit_code)
 
-def check_chaos_installed():
-    """Return True if chaos is installed and available in PATH."""
+def check_subfinder_installed():
+    """Return True if subfinder is installed and available in PATH."""
     try:
         result = subprocess.run(
-            ["/go/bin/chaos", "-version"],
+            ["/go/bin/subfinder", "-version"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
@@ -59,12 +60,12 @@ def activate_venv():
         else:
             print("[*] Virtual environment found but Python not detected")
 
-def run_chaos_scan_and_save(domain):
-    """Run chaos scan and save results to a timestamped file."""
+def run_subfinder_scan_and_save(domain):
+    """Run subfinder scan and save results to a timestamped file."""
     try:
-        scan_output = run_chaos_scan(domain)
+        scan_output = run_subfinder_scan(domain)
         if scan_output is None:
-            print("[!] chaos scan failed or returned no output")
+            print("[!] subfinder scan failed or returned no output")
             return 1
         
         output_dir = "outputs"
@@ -82,10 +83,10 @@ def run_chaos_scan_and_save(domain):
         print(f"[!] Error running scan: {e}", file=sys.stderr)
         return 1
 
-def run_chaos_scan(domain):
-    """Run chaos scan on the given domain and return its output as a string, or None on error."""
+def run_subfinder_scan(domain):
+    """Run subfinder scan on the given domain and return its output as a string, or None on error."""
     command = [
-        "/go/bin/chaos",
+        "/go/bin/subfinder",
         "-d", domain,
         "-silent"
     ]
@@ -100,25 +101,25 @@ def run_chaos_scan(domain):
             check=False
         )
         if result.returncode == -9:
-            print("[!] Warning: chaos process was killed by SIGKILL (likely due to memory/resource limits)")
+            print("[!] Warning: subfinder process was killed by SIGKILL (likely due to memory/resource limits)")
             if result.stdout.strip():
                 return result.stdout
             return None
         if result.returncode != 0:
-            print(f"[!] chaos exited with code {result.returncode}")
+            print(f"[!] subfinder exited with code {result.returncode}")
             if result.stderr:
-                print("chaos error output:")
+                print("subfinder error output:")
                 print(result.stderr)
             return result.stdout if result.stdout.strip() else None
         return result.stdout
     except subprocess.TimeoutExpired:
-        print("[!] chaos scan timed out")
+        print("[!] subfinder scan timed out")
         return None
     except FileNotFoundError:
-        print("[!] Error: chaos command not found. Please ensure chaos is installed and in PATH")
+        print("[!] Error: subfinder command not found. Please ensure subfinder is installed and in PATH")
         return None
     except Exception as e:
-        print(f"[!] Unexpected error running chaos: {e}")
+        print(f"[!] Unexpected error running subfinder: {e}")
         return None
 
 if __name__ == "__main__":
